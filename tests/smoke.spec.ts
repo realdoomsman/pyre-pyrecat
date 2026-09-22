@@ -115,3 +115,18 @@ test("the layout fits a mobile viewport with no horizontal overflow", async ({ p
   );
   expect(overflow).toBeLessThanOrEqual(1);
 });
+
+test("Pyre apps are free — no ad slots or payment prompts appear on any tab", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("complementary", { name: "Sponsored" })).toHaveCount(0);
+  await expect(page.getByText(/ad-free/i)).toHaveCount(0);
+
+  await page.getByTestId("generate").click();
+  await expect(page.getByText(/ad-free/i)).toHaveCount(0);
+
+  await page.getByRole("navigation", { name: "Sections" }).getByRole("button", { name: "Gallery" }).click();
+  await expect(page.getByRole("complementary", { name: "Sponsored" })).toHaveCount(0);
+
+  await page.getByRole("navigation", { name: "Sections" }).getByRole("button", { name: /^My Pyrecats/ }).click();
+  await expect(page.getByRole("complementary", { name: "Sponsored" })).toHaveCount(0);
+});

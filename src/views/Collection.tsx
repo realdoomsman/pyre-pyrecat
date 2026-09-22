@@ -1,7 +1,8 @@
 import { LoginButton } from "@pyre/app-sdk/react";
+import { Button, Card, EmptyState } from "../components";
 import { CatCard } from "../CatCard";
 import type { Pyrecat } from "../types";
-import { AdRail, BTN_GHOST, BTN_PRIMARY, Note, PANEL, Spinner } from "../ui";
+import { Note, Spinner } from "../ui";
 
 export interface CollectionProps {
   cats: Pyrecat[];
@@ -9,9 +10,6 @@ export interface CollectionProps {
   loading: boolean;
   error: string | null;
   loggedIn: boolean;
-  isHolder: boolean;
-  ticker: string;
-  minHold: string;
   removing: string | null;
   onRefresh: () => void;
   onRemove: (id: string) => void;
@@ -24,9 +22,6 @@ export function Collection({
   loading,
   error,
   loggedIn,
-  isHolder,
-  ticker,
-  minHold,
   removing,
   onRefresh,
   onRemove,
@@ -34,21 +29,20 @@ export function Collection({
 }: CollectionProps): React.ReactElement {
   if (!loggedIn) {
     return (
-      <section aria-labelledby="saved-heading" className={PANEL} data-testid="saved-signed-out">
-        <h2 className="text-lg font-bold" id="saved-heading">
-          My Pyrecats
-        </h2>
-        <p className="mt-2 max-w-prose text-sm text-white/65">
-          Log in and your favourite cats are kept on your Pyre account — same shelf on every device, no wallet setup,
-          no extensions.
-        </p>
-        <div className="mt-5 flex flex-wrap gap-3">
-          <LoginButton className={BTN_PRIMARY}>Log in to start a collection</LoginButton>
-          <button className={BTN_GHOST} onClick={onGoGenerate} type="button">
+      <Card
+        data-testid="saved-signed-out"
+        description="Log in and your favourite cats are kept on your Pyre account — same shelf on every device, no wallet setup, no extensions."
+        title="My Pyrecats"
+      >
+        <div className="flex flex-wrap gap-3">
+          <LoginButton className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-card bg-violet px-4 text-sm font-medium text-bg transition-colors hover:bg-violet-hover">
+            Log in to start a collection
+          </LoginButton>
+          <Button onClick={onGoGenerate} type="button" variant="secondary">
             Roll a cat first
-          </button>
+          </Button>
         </div>
-      </section>
+      </Card>
     );
   }
 
@@ -56,35 +50,43 @@ export function Collection({
     <section aria-labelledby="saved-heading" className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="text-lg font-bold" id="saved-heading">
+          <h2 className="font-display text-lg text-ink" id="saved-heading">
             My Pyrecats
           </h2>
-          <p className="mt-1 text-sm text-white/60">
+          <p className="mt-1 text-sm text-ink-muted">
             {cats.length} of {limit} slots used.
           </p>
         </div>
-        <button className={BTN_GHOST} disabled={loading} onClick={onRefresh} type="button">
+        <Button disabled={loading} onClick={onRefresh} type="button" variant="secondary">
           {loading ? <Spinner label="Loading…" /> : "Refresh"}
-        </button>
+        </Button>
       </div>
 
-      {error !== null ? <Note onRetry={onRefresh} tone="error">{error}</Note> : null}
+      {error !== null ? (
+        <Note onRetry={onRefresh} tone="error">
+          {error}
+        </Note>
+      ) : null}
 
       {loading && cats.length === 0 ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {[0, 1].map((slot) => (
-            <div className="h-44 animate-pulse rounded-2xl border border-white/10 bg-white/[0.04]" key={slot} />
+            <div className="h-44 animate-pulse rounded-card border border-border bg-surface" key={slot} />
           ))}
         </div>
       ) : null}
 
       {!loading && cats.length === 0 && error === null ? (
-        <div className={PANEL} data-testid="saved-empty">
-          <p className="text-sm text-white/70">Nothing saved yet. Roll a cat you like and hit save.</p>
-          <button className={`${BTN_PRIMARY} mt-4`} onClick={onGoGenerate} type="button">
-            Go to the generator
-          </button>
-        </div>
+        <EmptyState
+          action={
+            <Button onClick={onGoGenerate} type="button">
+              Go to the generator
+            </Button>
+          }
+          data-testid="saved-empty"
+          title="Nothing saved yet."
+          description="Roll a cat you like and hit save."
+        />
       ) : null}
 
       {cats.length > 0 ? (
@@ -94,14 +96,14 @@ export function Collection({
               <div className="flex w-full">
                 <CatCard
                   action={
-                    <button
-                      className={BTN_GHOST}
+                    <Button
                       disabled={removing === cat.id}
                       onClick={() => onRemove(cat.id)}
                       type="button"
+                      variant="secondary"
                     >
                       {removing === cat.id ? <Spinner label="Removing…" /> : `Remove ${cat.name}`}
-                    </button>
+                    </Button>
                   }
                   cat={cat}
                 />
@@ -110,8 +112,6 @@ export function Collection({
           ))}
         </ul>
       ) : null}
-
-      <AdRail isHolder={isHolder} minHold={minHold} ticker={ticker} />
     </section>
   );
 }

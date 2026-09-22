@@ -5,25 +5,20 @@
   "functions": [
     {
       "name": "generate",
-      "priceUsd": 0,
       "auth": false,
       "holderOnly": false
     },
     {
       "name": "gallery",
-      "priceUsd": 0,
       "auth": false,
       "holderOnly": false
     },
     {
       "name": "collection",
-      "priceUsd": 0,
       "auth": true,
       "holderOnly": false
     }
   ],
-  "products": [],
-  "adSlot": true,
   "holderTier": {
     "minHoldTokens": 10000
   }

@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { HolderGate } from "@pyre/app-sdk/react";
+import { Button, Card, Chip } from "../components";
 import { CatCard } from "../CatCard";
 import type { GenerateResult, Pyrecat } from "../types";
 import { VIBES } from "../vibes";
-import { AdRail, BTN_GHOST, BTN_PRIMARY, Note, PANEL, Spinner } from "../ui";
+import { Note, Spinner } from "../ui";
 
 export interface GeneratorProps {
   isHolder: boolean;
@@ -85,16 +86,12 @@ export function Generator({
 
   return (
     <div className="flex flex-col gap-6">
-      <section aria-labelledby="gen-heading" className={PANEL}>
-        <h2 className="text-lg font-bold" id="gen-heading">
-          Roll a new Pyrecat
-        </h2>
-        <p className="mt-1 text-sm text-white/60">
-          Pick a vibe and the cattery writes a name, a personality quirk and a one-line backstory.
-        </p>
-
-        <fieldset className="mt-5">
-          <legend className="text-xs font-semibold tracking-wide text-white/50 uppercase">Vibe</legend>
+      <Card
+        description="Pick a vibe and the cattery writes a name, a personality quirk and a one-line backstory."
+        title="Roll a new Pyrecat"
+      >
+        <fieldset>
+          <legend className="font-mono text-xs font-semibold tracking-wide text-ink-faint uppercase">Vibe</legend>
           <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
             {FREE_VIBES.map((option) => (
               <VibeOption
@@ -110,29 +107,26 @@ export function Generator({
 
           <HolderGate
             fallback={
-              <div className="mt-4 rounded-xl border border-dashed border-amber-400/35 bg-amber-400/[0.05] p-4">
-                <p className="text-sm font-semibold text-amber-100">
+              <div className="mt-4 rounded-card border border-dashed border-border-strong p-4">
+                <p className="text-sm font-medium text-ink">
                   {HOLDER_VIBES.length} more vibes + the rare cat table
                 </p>
                 <ul className="mt-2 flex flex-wrap gap-1.5">
                   {HOLDER_VIBES.map((option) => (
-                    <li
-                      key={option.key}
-                      className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-xs text-white/55"
-                    >
-                      {option.label}
+                    <li key={option.key}>
+                      <Chip>{option.label}</Chip>
                     </li>
                   ))}
                 </ul>
-                <p className="mt-3 text-xs text-white/60">
-                  Hold {minHold} {ticker} to unlock these vibes, roll Rare and Mythic cats, stamp a holder badge on
-                  everything you save, and drop the ads.
+                <p className="mt-3 text-xs text-ink-faint">
+                  Hold {minHold} {ticker} to unlock these vibes, roll Rare and Mythic cats, and stamp a holder badge
+                  on everything you save.
                 </p>
               </div>
             }
           >
-            <div className="mt-4 rounded-xl border border-amber-400/35 bg-amber-400/[0.06] p-4">
-              <p className="text-xs font-semibold tracking-wide text-amber-200 uppercase">
+            <div className="mt-4 rounded-card border border-violet/35 bg-violet-soft p-4">
+              <p className="font-mono text-xs font-semibold tracking-wide text-violet uppercase">
                 Holder vibes · rare table live
               </p>
               <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -152,10 +146,12 @@ export function Generator({
         </fieldset>
 
         <div className="mt-5 flex flex-wrap items-center gap-3">
-          <button className={BTN_PRIMARY} data-testid="generate" disabled={running} onClick={() => void run()} type="button">
+          <Button data-testid="generate" disabled={running} onClick={() => void run()} type="button">
             {running ? <Spinner label="Consulting the cattery…" /> : "Generate a Pyrecat"}
-          </button>
-          {cat !== null && !running ? <span className="text-xs text-white/45">Roll again for a new one.</span> : null}
+          </Button>
+          {cat !== null && !running ? (
+            <span className="text-xs text-ink-faint">Roll again for a new one.</span>
+          ) : null}
         </div>
 
         {error !== null ? (
@@ -165,14 +161,14 @@ export function Generator({
             </Note>
           </div>
         ) : null}
-      </section>
+      </Card>
 
       {running && cat === null ? (
-        <div className={PANEL} data-testid="generate-pending">
-          <p className="text-sm text-white/60">
+        <Card data-testid="generate-pending">
+          <p className="text-sm text-ink-muted">
             <Spinner label="Naming your cat…" />
           </p>
-        </div>
+        </Card>
       ) : null}
 
       {cat !== null ? (
@@ -183,19 +179,19 @@ export function Generator({
           <CatCard
             action={
               loggedIn ? (
-                <button
-                  className={BTN_GHOST}
+                <Button
                   data-testid="save-cat"
                   disabled={saving || alreadySaved}
                   onClick={() => void save()}
                   type="button"
+                  variant="secondary"
                 >
                   {saving ? <Spinner label="Saving…" /> : alreadySaved ? "Saved ✓" : "Save to My Pyrecats"}
-                </button>
+                </Button>
               ) : (
-                <button className={BTN_GHOST} data-testid="save-login" onClick={() => void onLogin()} type="button">
+                <Button data-testid="save-login" onClick={() => void onLogin()} type="button" variant="secondary">
                   Log in to save this cat
-                </button>
+                </Button>
               )
             }
             cat={cat}
@@ -215,8 +211,6 @@ export function Generator({
           {saveState !== null ? <Note tone={saveState.tone}>{saveState.text}</Note> : null}
         </section>
       ) : null}
-
-      <AdRail isHolder={isHolder} minHold={minHold} ticker={ticker} />
     </div>
   );
 }
@@ -233,14 +227,14 @@ function VibeOption({ value, label, blurb, checked, onSelect }: VibeOptionProps)
   return (
     <label
       className={[
-        "flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors",
-        checked ? "border-amber-400/70 bg-amber-400/15" : "border-white/12 bg-white/[0.03] hover:bg-white/[0.07]",
+        "flex cursor-pointer items-start gap-3 rounded-card border p-3 transition-colors",
+        checked ? "border-violet/50 bg-violet-soft" : "border-border bg-surface hover:border-border-strong",
       ].join(" ")}
       htmlFor={`vibe-${value}`}
     >
       <input
         checked={checked}
-        className="mt-0.5 size-4 shrink-0 accent-amber-400"
+        className="mt-0.5 size-4 shrink-0 accent-violet"
         id={`vibe-${value}`}
         name="vibe"
         onChange={onSelect}
@@ -248,8 +242,8 @@ function VibeOption({ value, label, blurb, checked, onSelect }: VibeOptionProps)
         value={value}
       />
       <span className="min-w-0">
-        <span className="block text-sm font-semibold">{label}</span>
-        <span className="block text-xs text-white/55">{blurb}</span>
+        <span className="block text-sm font-medium text-ink">{label}</span>
+        <span className="block text-xs text-ink-muted">{blurb}</span>
       </span>
     </label>
   );

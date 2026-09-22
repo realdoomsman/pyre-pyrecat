@@ -3,11 +3,11 @@ import { ship, pyreEnv } from "@pyre/app-sdk";
 import { LoginButton, usePyre } from "@pyre/app-sdk/react";
 import { CatAvatar } from "./CatAvatar";
 import { CAT_FACTS, factOfTheDay } from "./catFacts";
+import { Button, Card } from "./components";
 import { Collection } from "./views/Collection";
 import { Gallery } from "./views/Gallery";
 import { Generator } from "./views/Generator";
 import type { CollectionResult, GalleryResult, GenerateResult, Pyrecat, Rarity } from "./types";
-import { BTN_GHOST, BTN_PRIMARY, PANEL } from "./ui";
 
 type Tab = "generate" | "gallery" | "saved";
 
@@ -149,78 +149,80 @@ export default function App(): React.ReactElement {
         <div className="flex items-center gap-3">
           <CatAvatar className="size-11 shrink-0" name="pyrecat-mark" rarity="mythic" />
           <div>
-            <h1 className="text-2xl font-black tracking-tight sm:text-3xl">Pyrecat</h1>
-            <p className="text-xs text-white/55">{ticker} · cattery on Pyre</p>
+            <h1 className="text-2xl text-ink sm:text-3xl">Pyrecat</h1>
+            <p className="font-mono text-xs text-ink-faint">{ticker} · cattery on Pyre</p>
           </div>
         </div>
-        <LoginButton className={BTN_GHOST}>Log in</LoginButton>
+        <LoginButton className="h-10 rounded-card border border-border bg-surface px-4 text-sm font-medium text-ink hover:border-border-strong">
+          Log in
+        </LoginButton>
       </header>
 
-      <section className={`${PANEL} flex flex-col gap-6 sm:flex-row sm:items-center`}>
+      <Card className="flex flex-col gap-6 sm:flex-row sm:items-center">
         <div className="flex-1">
-          <p className="text-xs font-semibold tracking-wide text-amber-300 uppercase">Cat personas, on demand</p>
-          <h2 className="mt-2 text-2xl leading-tight font-bold sm:text-4xl">
+          <p className="font-mono text-xs tracking-wide text-violet uppercase">Cat personas, on demand</p>
+          <h2 className="mt-2 font-display text-3xl leading-tight text-ink sm:text-4xl">
             Every Pyrecat is written once and never again.
           </h2>
-          <p className="mt-3 max-w-prose text-sm leading-relaxed text-white/70 sm:text-base">
+          <p className="mt-3 max-w-prose text-sm leading-relaxed text-ink-muted sm:text-base">
             Roll a cat and the cattery invents a name, a personality quirk and a one-line backstory, then draws its
             portrait from the name itself. Keep the ones you love on your Pyre account, and browse what everyone else
-            has rolled. Free for everyone; holders of {minHold} {ticker} get four extra vibes, the rare cat table, a
-            holder badge and no ads.
+            has rolled. Free for everyone; holders of {minHold} {ticker} get four extra vibes, the rare cat table and
+            a holder badge on everything they save.
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
-            <button className={BTN_PRIMARY} onClick={() => setTab("generate")} type="button">
+            <Button onClick={() => setTab("generate")} type="button">
               Generate a Pyrecat
-            </button>
-            <button className={BTN_GHOST} onClick={() => setTab("gallery")} type="button">
+            </Button>
+            <Button onClick={() => setTab("gallery")} type="button" variant="secondary">
               See the gallery
-            </button>
+            </Button>
           </div>
           <dl className="mt-6 flex flex-wrap gap-x-8 gap-y-3 text-sm">
             <div>
-              <dt className="text-xs tracking-wide text-white/45 uppercase">Cats rolled</dt>
-              <dd className="text-lg font-bold">{galleryTotal.toLocaleString()}</dd>
+              <dt className="font-mono text-xs tracking-wide text-ink-faint uppercase">Cats rolled</dt>
+              <dd className="font-mono text-lg tabular-nums text-ink">{galleryTotal.toLocaleString()}</dd>
             </div>
             <div>
-              <dt className="text-xs tracking-wide text-white/45 uppercase">In the gallery</dt>
-              <dd className="text-lg font-bold">{galleryCats.length}</dd>
+              <dt className="font-mono text-xs tracking-wide text-ink-faint uppercase">In the gallery</dt>
+              <dd className="font-mono text-lg tabular-nums text-ink">{galleryCats.length}</dd>
             </div>
             <div>
-              <dt className="text-xs tracking-wide text-white/45 uppercase">Your shelf</dt>
-              <dd className="text-lg font-bold">{loggedIn ? saved.length : "—"}</dd>
+              <dt className="font-mono text-xs tracking-wide text-ink-faint uppercase">Your shelf</dt>
+              <dd className="font-mono text-lg tabular-nums text-ink">{loggedIn ? saved.length : "—"}</dd>
             </div>
           </dl>
         </div>
 
         <figure className="flex w-full shrink-0 flex-col items-center gap-3 sm:w-56">
           <CatAvatar
-            className="size-40 rounded-2xl ring-1 ring-white/10 sm:size-52"
+            className="size-40 rounded-card ring-1 ring-border sm:size-52"
             name={`daily-${dayKey}`}
             rarity={dailyRarity}
           />
-          <figcaption className="text-center text-xs text-white/50">
+          <figcaption className="text-center text-xs text-ink-faint">
             Today&apos;s cat art — drawn from {dayKey}, new every day
           </figcaption>
         </figure>
-      </section>
+      </Card>
 
-      <section aria-labelledby="fact-heading" className={`${PANEL} flex flex-wrap items-center gap-4`}>
+      <Card aria-labelledby="fact-heading" className="flex flex-wrap items-center gap-4">
         <div className="min-w-0 flex-1">
-          <h2 className="text-xs font-semibold tracking-wide text-white/50 uppercase" id="fact-heading">
+          <h2 className="font-mono text-xs font-semibold tracking-wide text-ink-faint uppercase" id="fact-heading">
             Cat fact
           </h2>
-          <p className="mt-1 text-sm text-white/85" data-testid="cat-fact">
+          <p className="mt-1 text-sm text-ink" data-testid="cat-fact">
             {CAT_FACTS[factIndex]}
           </p>
         </div>
-        <button
-          className={BTN_GHOST}
+        <Button
           onClick={() => setFactIndex((current) => (current + 1) % CAT_FACTS.length)}
           type="button"
+          variant="secondary"
         >
           Another fact
-        </button>
-      </section>
+        </Button>
+      </Card>
 
       <nav aria-label="Sections" className="-mx-1 overflow-x-auto">
         <ul className="flex min-w-max gap-2 px-1">
@@ -231,10 +233,10 @@ export default function App(): React.ReactElement {
                 <button
                   aria-current={active ? "page" : undefined}
                   className={[
-                    "rounded-xl border px-4 py-2 text-sm font-semibold transition-colors",
+                    "rounded-card border px-4 py-2 text-sm font-medium transition-colors",
                     active
-                      ? "border-amber-400/70 bg-amber-400/15 text-amber-100"
-                      : "border-white/12 bg-white/[0.03] text-white/70 hover:bg-white/[0.08]",
+                      ? "border-violet/40 bg-violet-soft text-violet"
+                      : "border-border bg-surface text-ink-muted hover:border-border-strong hover:text-ink",
                   ].join(" ")}
                   onClick={() => setTab(entry.key)}
                   type="button"
@@ -265,12 +267,9 @@ export default function App(): React.ReactElement {
           <Gallery
             cats={galleryCats}
             error={galleryError}
-            isHolder={isHolder}
             loading={galleryLoading}
-            minHold={minHold}
             onGoGenerate={() => setTab("generate")}
             onRefresh={() => void loadGallery()}
-            ticker={ticker}
             total={galleryTotal}
           />
         ) : null}
@@ -278,21 +277,18 @@ export default function App(): React.ReactElement {
           <Collection
             cats={saved}
             error={savedError}
-            isHolder={isHolder}
             limit={savedLimit}
             loading={savedLoading}
             loggedIn={loggedIn}
-            minHold={minHold}
             onGoGenerate={() => setTab("generate")}
             onRefresh={() => void loadSaved()}
             onRemove={removeCat}
             removing={removing}
-            ticker={ticker}
           />
         ) : null}
       </main>
 
-      <footer className="mt-auto border-t border-white/10 pt-6 text-xs text-white/45">
+      <footer className="mt-auto border-t border-border pt-6 text-xs text-ink-faint">
         <p>
           {loggedIn ? `Signed in as ${user.displayName ?? user.wallet ?? user.id}. ` : ""}
           Pyrecat is built and funded by {ticker} on Pyre. Cat portraits are drawn in the browser — no images are
