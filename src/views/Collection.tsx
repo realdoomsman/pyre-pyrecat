@@ -1,7 +1,7 @@
 import { LoginButton } from "@pyre/app-sdk/react";
 import { CatCard } from "../CatCard";
 import type { Pyrecat } from "../types";
-import { BTN_GHOST, BTN_PRIMARY, Note, PANEL, Spinner } from "../ui";
+import { AdRail, BTN_GHOST, BTN_PRIMARY, Note, PANEL, Spinner } from "../ui";
 
 export interface CollectionProps {
   cats: Pyrecat[];
@@ -9,6 +9,9 @@ export interface CollectionProps {
   loading: boolean;
   error: string | null;
   loggedIn: boolean;
+  isHolder: boolean;
+  ticker: string;
+  minHold: string;
   removing: string | null;
   onRefresh: () => void;
   onRemove: (id: string) => void;
@@ -21,6 +24,9 @@ export function Collection({
   loading,
   error,
   loggedIn,
+  isHolder,
+  ticker,
+  minHold,
   removing,
   onRefresh,
   onRemove,
@@ -104,6 +110,8 @@ export function Collection({
           ))}
         </ul>
       ) : null}
+
+      <AdRail isHolder={isHolder} minHold={minHold} ticker={ticker} />
     </section>
   );
 }

@@ -59,3 +59,59 @@ test("My Pyrecats asks signed-out visitors to log in", async ({ page }) => {
   await expect(page.getByTestId("saved-signed-out")).toBeVisible();
   await expect(page.getByRole("heading", { level: 2, name: "My Pyrecats" })).toBeVisible();
 });
+
+test("a failed roll shows a retryable error, and retrying recovers", async ({ page }) => {
+  await page.goto("/");
+  let calls = 0;
+  await page.route("**/_pyre/fn/generate", async (route) => {
+    calls += 1;
+    if (calls === 1) {
+      await route.fulfill({
+        status: 500,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "The cattery jammed." }),
+      });
+      return;
+    }
+    await route.continue();
+  });
+
+  await page.getByTestId("generate").click();
+  const alert = page.getByRole("alert");
+  await expect(alert).toContainText("The cattery jammed.");
+
+  await alert.getByRole("button", { name: "Try again" }).click();
+  await expect(page.getByTestId("cat-card")).toBeVisible();
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  expect(calls).toBe(2);
+});
+
+test("the gallery reports a load error and recovers on retry", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("navigation", { name: "Sections" }).getByRole("button", { name: "Gallery" }).click();
+
+  await page.route("**/_pyre/fn/gallery", async (route) => {
+    await route.fulfill({
+      status: 500,
+      contentType: "application/json",
+      body: JSON.stringify({ error: "gallery offline" }),
+    });
+  });
+  await page.getByRole("button", { name: "Refresh" }).click();
+  await expect(page.getByRole("alert")).toContainText("gallery offline");
+
+  await page.unroute("**/_pyre/fn/gallery");
+  await page.getByRole("alert").getByRole("button", { name: "Try again" }).click();
+  await expect(page.getByRole("alert")).toHaveCount(0);
+});
+
+test("the layout fits a mobile viewport with no horizontal overflow", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(page.getByTestId("generate")).toBeVisible();
+  const overflow = await page.evaluate(
+    "document.documentElement.scrollWidth - document.documentElement.clientWidth",
+  );
+  expect(overflow).toBeLessThanOrEqual(1);
+});

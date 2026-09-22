@@ -34,8 +34,11 @@ export function Gallery({
               Community gallery
             </h2>
             <p className="mt-1 text-sm text-white/60">
-              The last {cats.length === 0 ? 20 : cats.length} Pyrecats anyone rolled
-              {total > cats.length ? ` — ${total.toLocaleString()} generated all time` : ""}.
+              {cats.length > 0
+                ? `The last ${cats.length} Pyrecats anyone rolled${
+                    total > cats.length ? ` — ${total.toLocaleString()} generated all time` : ""
+                  }.`
+                : "The most recently rolled Pyrecats, freshest first."}
             </p>
           </div>
           <button className={BTN_GHOST} disabled={loading} onClick={onRefresh} type="button">

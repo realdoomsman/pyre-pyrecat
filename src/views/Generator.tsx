@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { HolderGate } from "@pyre/app-sdk/react";
 import { CatCard } from "../CatCard";
 import type { GenerateResult, Pyrecat } from "../types";
@@ -38,6 +38,14 @@ export function Generator({
   const [saving, setSaving] = useState(false);
 
   const alreadySaved = cat !== null && savedIds.includes(cat.id);
+
+  // If holder status is lost mid-session, a holder-only vibe can no longer be selected —
+  // fall back to a free one so a radio is always checked.
+  useEffect(() => {
+    if (!isHolder && HOLDER_VIBES.some((option) => option.key === vibe)) {
+      setVibe("cozy");
+    }
+  }, [isHolder, vibe]);
 
   const run = async (): Promise<void> => {
     setRunning(true);
@@ -168,7 +176,7 @@ export function Generator({
       ) : null}
 
       {cat !== null ? (
-        <section aria-labelledby="result-heading" className="flex flex-col gap-3">
+        <section aria-labelledby="result-heading" aria-live="polite" className="flex flex-col gap-3">
           <h2 className="sr-only" id="result-heading">
             Your Pyrecat
           </h2>

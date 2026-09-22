@@ -278,13 +278,16 @@ export default function App(): React.ReactElement {
           <Collection
             cats={saved}
             error={savedError}
+            isHolder={isHolder}
             limit={savedLimit}
             loading={savedLoading}
             loggedIn={loggedIn}
+            minHold={minHold}
             onGoGenerate={() => setTab("generate")}
             onRefresh={() => void loadSaved()}
             onRemove={removeCat}
             removing={removing}
+            ticker={ticker}
           />
         ) : null}
       </main>
