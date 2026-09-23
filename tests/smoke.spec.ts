@@ -169,6 +169,96 @@ test("the rarity filter is hidden when every cat shares one rarity", async ({ pa
   await expect(page.getByRole("group", { name: "Filter by rarity" })).toHaveCount(0);
 });
 
+function stubMe(overrides: { isHolder?: boolean } = {}): Record<string, unknown> {
+  return {
+    user: { id: "test-user", wallet: null, displayName: "Test User" },
+    holder: { isHolder: overrides.isHolder ?? false, balance: "0", minHold: "10000" },
+    purchases: [],
+  };
+}
+
+test("a signed-in visitor can save a Pyrecat and remove it from My Pyrecats", async ({ page }) => {
+  let shelf: Record<string, unknown>[] = [];
+
+  await page.route("**/_pyre/me", async (route) => {
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(stubMe()) });
+  });
+  await page.route("**/_pyre/fn/collection", async (route) => {
+    const body = route.request().postDataJSON() as { action?: string; cat?: Record<string, unknown>; id?: string };
+    if (body.action === "save" && body.cat) {
+      shelf = [body.cat, ...shelf.filter((entry) => entry.id !== body.cat!.id)];
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ result: { ok: true, saved: true, cats: shelf, limit: 40 } }),
+      });
+      return;
+    }
+    if (body.action === "remove") {
+      shelf = shelf.filter((entry) => entry.id !== body.id);
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ result: { ok: true, removed: true, cats: shelf, limit: 40 } }),
+      });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ result: { ok: true, cats: shelf, limit: 40 } }),
+    });
+  });
+
+  await page.goto("/");
+  await expect(page.getByText("Signed in as Test User.")).toBeVisible();
+
+  await page.getByTestId("generate").click();
+  const card = page.getByTestId("cat-card").first();
+  await expect(card).toBeVisible();
+  const name = (await card.getByTestId("cat-name").innerText()).trim();
+
+  const saveButton = page.getByTestId("save-cat");
+  await saveButton.click();
+  await expect(page.getByText(`${name} is now in My Pyrecats.`)).toBeVisible();
+  await expect(saveButton).toBeDisabled();
+  await expect(saveButton).toHaveText("Saved ✓");
+
+  await page.getByRole("navigation", { name: "Sections" }).getByRole("button", { name: /^My Pyrecats/ }).click();
+  const savedList = page.getByTestId("saved-list");
+  await expect(savedList).toContainText(name);
+
+  await page.getByRole("button", { name: `Remove ${name}` }).click();
+  await expect(page.getByTestId("saved-empty")).toBeVisible();
+});
+
+test("a full collection reports a clear error instead of a generic one", async ({ page }) => {
+  await page.route("**/_pyre/me", async (route) => {
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(stubMe()) });
+  });
+  await page.route("**/_pyre/fn/collection", async (route) => {
+    const body = route.request().postDataJSON() as { action?: string };
+    if (body.action === "save") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ result: { ok: false, reason: "full", cats: [], limit: 40 } }),
+      });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ result: { ok: true, cats: [], limit: 40 } }),
+    });
+  });
+
+  await page.goto("/");
+  await page.getByTestId("generate").click();
+  await page.getByTestId("save-cat").click();
+  await expect(page.getByRole("alert")).toContainText("Your collection is full at 40 cats — remove one to make room.");
+});
+
 test("the layout fits a mobile viewport with no horizontal overflow", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
