@@ -53,6 +53,82 @@ test("holder-only vibes stay locked without the coin", async ({ page }) => {
   await expect(page.getByRole("radio", { name: "Cosmic" })).toHaveCount(0);
 });
 
+/**
+ * `<HolderGate>` reads `window.__PYRE__.tokenAddress` (from `/_pyre/env.js`) and the
+ * session's `holder.balance` (from `/_pyre/me`) — both are empty/zero on the local dev
+ * host, so this is the only way to exercise the unlocked branch of the gate at all.
+ */
+async function stubHolderSession(page: import("@playwright/test").Page): Promise<void> {
+  await page.route("**/_pyre/env.js", async (route) => {
+    const env = {
+      appId: "local",
+      slug: "local",
+      chainId: 4663,
+      tokenAddress: "0x000000000000000000000000000000000000f1",
+      explorerUrl: "https://robinhoodchain.blockscout.com",
+      googleClientId: "",
+      basePath: "",
+      apiOrigin: "",
+      name: "Pyrecat",
+      ticker: "PYRECAT",
+      holderMin: "10000",
+      functions: [],
+    };
+    await route.fulfill({
+      status: 200,
+      contentType: "text/javascript",
+      body: `window.__PYRE__ = ${JSON.stringify(env)};`,
+    });
+  });
+  await page.route("**/_pyre/me", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        user: { id: "holder-user", wallet: "0xabc", displayName: "Holder User" },
+        holder: { isHolder: true, balance: "25000", minHold: "10000" },
+      }),
+    });
+  });
+}
+
+test("holder-only vibes unlock for a holder session", async ({ page }) => {
+  await stubHolderSession(page);
+  await page.goto("/");
+
+  await expect(page.getByText("more vibes + the rare cat table")).toHaveCount(0);
+  await expect(page.getByText("Holder vibes · rare table live")).toBeVisible();
+  await expect(page.getByRole("radio", { name: "Cosmic" })).toBeVisible();
+
+  // The dev/preview host has no real wallet, so `functions/generate.js` still sees an
+  // anonymous, non-holder caller and swaps a holder-only pick for a free vibe — the UI
+  // should surface that instead of pretending the roll used the requested vibe.
+  await page.getByRole("radio", { name: "Cosmic" }).check();
+  await page.getByTestId("generate").click();
+  await expect(page.getByTestId("cat-card").first()).toBeVisible();
+  await expect(page.getByText(/holder-only, so we rolled a free one instead/)).toBeVisible();
+});
+
+test("a slow roll shows the pending state until it resolves", async ({ page }) => {
+  await page.goto("/");
+  let release: (() => void) | undefined;
+  const held = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route("**/_pyre/fn/generate", async (route) => {
+    await held;
+    await route.continue();
+  });
+
+  await page.getByTestId("generate").click();
+  await expect(page.getByTestId("generate-pending")).toBeVisible();
+  await expect(page.getByTestId("cat-card")).toHaveCount(0);
+
+  release?.();
+  await expect(page.getByTestId("generate-pending")).toHaveCount(0);
+  await expect(page.getByTestId("cat-card").first()).toBeVisible();
+});
+
 test("My Pyrecats asks signed-out visitors to log in", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("navigation", { name: "Sections" }).getByRole("button", { name: /^My Pyrecats/ }).click();

@@ -3,7 +3,7 @@ import { ship, pyreEnv } from "@pyre/app-sdk";
 import { LoginButton, usePyre } from "@pyre/app-sdk/react";
 import { CatAvatar } from "./CatAvatar";
 import { CAT_FACTS, factOfTheDay } from "./catFacts";
-import { Button, Card } from "./components";
+import { Button, buttonClassName, Card } from "./components";
 import { Collection } from "./views/Collection";
 import { Gallery } from "./views/Gallery";
 import { Generator } from "./views/Generator";
@@ -153,9 +153,7 @@ export default function App(): React.ReactElement {
             <p className="font-mono text-xs text-ink-faint">{ticker} · cattery on Pyre</p>
           </div>
         </div>
-        <LoginButton className="h-10 rounded-card border border-border bg-surface px-4 text-sm font-medium text-ink hover:border-border-strong">
-          Log in
-        </LoginButton>
+        <LoginButton className={buttonClassName("secondary")}>Log in</LoginButton>
       </header>
 
       <Card className="flex flex-col gap-6 sm:flex-row sm:items-center">

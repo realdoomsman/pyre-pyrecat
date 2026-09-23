@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { LoginButton } from "@pyre/app-sdk/react";
-import { Button, Card, EmptyState } from "../components";
+import { Button, buttonClassName, Card, EmptyState } from "../components";
 import { CatCard } from "../CatCard";
 import type { Pyrecat, Rarity } from "../types";
 import { Note, RarityFilter, Spinner, type RarityFilterValue } from "../ui";
@@ -53,9 +53,7 @@ export function Collection({
         title="My Pyrecats"
       >
         <div className="flex flex-wrap gap-3">
-          <LoginButton className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-card bg-violet px-4 text-sm font-medium text-bg transition-colors hover:bg-violet-hover">
-            Log in to start a collection
-          </LoginButton>
+          <LoginButton className={buttonClassName("primary")}>Log in to start a collection</LoginButton>
           <Button onClick={onGoGenerate} type="button" variant="secondary">
             Roll a cat first
           </Button>
