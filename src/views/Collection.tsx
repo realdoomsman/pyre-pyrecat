@@ -1,8 +1,11 @@
+import { useEffect, useMemo, useState } from "react";
 import { LoginButton } from "@pyre/app-sdk/react";
 import { Button, Card, EmptyState } from "../components";
 import { CatCard } from "../CatCard";
-import type { Pyrecat } from "../types";
-import { Note, Spinner } from "../ui";
+import type { Pyrecat, Rarity } from "../types";
+import { Note, RarityFilter, Spinner, type RarityFilterValue } from "../ui";
+
+const EMPTY_COUNTS: Record<Rarity, number> = { common: 0, uncommon: 0, rare: 0, mythic: 0 };
 
 export interface CollectionProps {
   cats: Pyrecat[];
@@ -27,6 +30,21 @@ export function Collection({
   onRemove,
   onGoGenerate,
 }: CollectionProps): React.ReactElement {
+  const [filter, setFilter] = useState<RarityFilterValue>("all");
+
+  const counts = useMemo(() => {
+    const next = { ...EMPTY_COUNTS };
+    for (const cat of cats) next[cat.rarity] += 1;
+    return next;
+  }, [cats]);
+  const rarityKinds = (Object.keys(counts) as Rarity[]).filter((rarity) => counts[rarity] > 0).length;
+
+  useEffect(() => {
+    if (filter !== "all" && counts[filter] === 0) setFilter("all");
+  }, [filter, counts]);
+
+  const visible = filter === "all" ? cats : cats.filter((cat) => cat.rarity === filter);
+
   if (!loggedIn) {
     return (
       <Card
@@ -89,9 +107,13 @@ export function Collection({
         />
       ) : null}
 
+      {cats.length > 0 && rarityKinds > 1 ? (
+        <RarityFilter counts={counts} label="Filter by rarity" onChange={setFilter} value={filter} />
+      ) : null}
+
       {cats.length > 0 ? (
         <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2" data-testid="saved-list">
-          {cats.map((cat) => (
+          {visible.map((cat) => (
             <li className="flex" key={cat.id}>
               <div className="flex w-full">
                 <CatCard

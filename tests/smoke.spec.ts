@@ -105,6 +105,70 @@ test("the gallery reports a load error and recovers on retry", async ({ page }) 
   await expect(page.getByRole("alert")).toHaveCount(0);
 });
 
+function stubCat(id: string, name: string, rarity: string): Record<string, unknown> {
+  return {
+    id,
+    name,
+    trait: "a stubbed trait",
+    backstory: "A one-line backstory for testing.",
+    vibe: "cozy",
+    vibeLabel: "Cozy",
+    rarity,
+    holderBadge: false,
+    createdAt: new Date().toISOString(),
+  };
+}
+
+test("the gallery can be filtered by rarity", async ({ page }) => {
+  const cats = [
+    stubCat("c1", "Common One", "common"),
+    stubCat("c2", "Common Two", "common"),
+    stubCat("c3", "Mythic One", "mythic"),
+  ];
+  await page.route("**/_pyre/fn/gallery", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ result: { cats, total: cats.length } }),
+    });
+  });
+
+  await page.goto("/");
+  await page.getByRole("navigation", { name: "Sections" }).getByRole("button", { name: "Gallery" }).click();
+
+  const list = page.getByTestId("gallery-list");
+  await expect(list).toContainText("Common One");
+  await expect(list).toContainText("Mythic One");
+
+  const filter = page.getByRole("group", { name: "Filter by rarity" });
+  await expect(filter).toBeVisible();
+
+  await filter.getByRole("button", { name: /^Mythic/ }).click();
+  await expect(list).toContainText("Mythic One");
+  await expect(list).not.toContainText("Common One");
+
+  await filter.getByRole("button", { name: /^All/ }).click();
+  await expect(list).toContainText("Common One");
+  await expect(list).toContainText("Mythic One");
+});
+
+test("the rarity filter is hidden when every cat shares one rarity", async ({ page }) => {
+  const cats = [stubCat("c1", "Common One", "common"), stubCat("c2", "Common Two", "common")];
+  await page.route("**/_pyre/fn/gallery", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ result: { cats, total: cats.length } }),
+    });
+  });
+
+  await page.goto("/");
+  await page.getByRole("navigation", { name: "Sections" }).getByRole("button", { name: "Gallery" }).click();
+
+  await expect(page.getByTestId("gallery-list")).toContainText("Common One");
+  await expect(page.getByRole("group", { name: "Filter by rarity" })).toHaveCount(0);
+});
+
 test("the layout fits a mobile viewport with no horizontal overflow", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
